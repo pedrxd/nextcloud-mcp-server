@@ -1,9 +1,11 @@
 import logging
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
-from mcp.server.fastmcp import Context, FastMCP
+from fastmcp import FastMCP, Context
+from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
 
 from nextcloud_mcp_server.client import NextcloudClient
 from nextcloud_mcp_server.config import setup_logging
@@ -37,8 +39,20 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
         await client.close()
 
 
+verifier = None
+if os.environ.get('FASTMCP_BEARER_TOKEN'):
+    verifier = StaticTokenVerifier(
+        tokens={
+            os.environ['FASTMCP_BEARER_TOKEN']: {
+                "client_id": "guest-user",
+                "scopes": ["read:data"]
+            }
+        },
+        required_scopes=["read:data"]
+    )
+
 # Create an MCP server
-mcp = FastMCP("Nextcloud MCP", lifespan=app_lifespan)
+mcp = FastMCP("Nextcloud MCP", lifespan=app_lifespan, auth=verifier if verifier else None)
 
 logger = logging.getLogger(__name__)
 
@@ -60,5 +74,5 @@ configure_calendar_tools(mcp)
 configure_contacts_tools(mcp)
 
 
-def run():
+if __name__ == "__main__":
     mcp.run()

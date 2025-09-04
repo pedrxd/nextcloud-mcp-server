@@ -3,7 +3,7 @@ from httpx import HTTPStatusError
 from mcp.shared.exceptions import McpError
 from mcp.types import ErrorData
 
-from mcp.server.fastmcp import Context, FastMCP
+from fastmcp import FastMCP, Context
 
 from nextcloud_mcp_server.client import NextcloudClient
 from nextcloud_mcp_server.models.notes import (

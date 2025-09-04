@@ -2,7 +2,7 @@ import datetime as dt
 import logging
 from typing import Optional
 
-from mcp.server.fastmcp import Context, FastMCP
+from fastmcp import FastMCP, Context
 
 from nextcloud_mcp_server.client import NextcloudClient
 from nextcloud_mcp_server.models.calendar import (

@@ -1,9 +1,24 @@
-FROM ghcr.io/astral-sh/uv:0.8.15-python3.11-alpine@sha256:e471ce4bfa92cc0fde030ed04f96c12aec41a7291451cd941b35b482200ed3a4
+# Install uv
+FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+# Change the working directory to the `app` directory
 WORKDIR /app
 
-COPY . .
+# Install dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project
 
-RUN uv sync --locked --no-dev
+# Copy the project into the image
+ADD pyproject.toml uv.lock README.md /app/
+ADD nextcloud_mcp_server/ /app/nextcloud_mcp_server
 
-CMD ["/app/.venv/bin/mcp", "run", "--transport", "sse", "/app/nextcloud_mcp_server/app.py:mcp"]
+# Sync the project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
+
+EXPOSE 8000
+
+CMD ["uv", "run", "fastmcp", "run", "nextcloud_mcp_server/app.py", "--transport", "http"]

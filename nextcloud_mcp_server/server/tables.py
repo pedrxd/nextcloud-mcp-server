@@ -1,6 +1,6 @@
 import logging
 
-from mcp.server.fastmcp import Context, FastMCP
+from fastmcp import FastMCP, Context
 
 from nextcloud_mcp_server.client import NextcloudClient
 
